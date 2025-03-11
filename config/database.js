@@ -5,3 +5,5 @@ await mongoose.connect("mongodb://lokeshkrishna765:87654321@cluster0-shard-00-00
 }
 
 module.exports = connectDB
+
+// lokeshkrishna765:87654321

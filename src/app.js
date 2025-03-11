@@ -1,15 +1,25 @@
 const express = require('express')
+require('dotenv').config(); // Load environment variables
+// console.log(process.env.JWT_SECRET,"da");
+
+const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
 const connectDB = require('../config/database')
 const User = require('../models/user')
 const app = express()
+const jwt = require('jsonwebtoken');
 const {validateSignUpData} = require('../utils/validation'); 
 app.use(express.json())
+app.use(cookieParser())
 
 app.post('/signup',async (req,res)=>{
+    console.log("daf");
+    
     try{
     // 1. Validation 
     validateSignUpData(req);
+    console.log("demo");
+    
     const {firstName ,lastName,emailId,password}= req.body;
 
     // 2. Encryption
@@ -38,7 +48,14 @@ app.post("/login",async(req,res)=>{
             throw new Error("Emailid not present in db");
         }else{
             const isPasswordValid = await bcrypt.compare(password,user.password);
+
+            // 1. Creating jwt token
+
+            // 2. Adding it to cookies sending back to browser
             if(isPasswordValid){
+                
+                const token = jwt.sign({emailId:user.emailId,user:user._id},process.env.JWT_SECRET);
+                res.cookie('token',token);
                 res.send("Login Successfully");
             }else{
                 throw new Error("Invalid Credentials")
@@ -49,6 +66,14 @@ app.post("/login",async(req,res)=>{
     }
 })
 
+
+// Verification for cookies 
+app.get("/profile",(req,res)=>{
+    const cookieToken = req.cookies.token
+    console.log(cookieToken,"cookieTokens");
+    res.send(cookieToken);
+
+})
 //  Payload To Fetch All The Users
 app.get("/allusers",async (req,res)=>{
     try{
