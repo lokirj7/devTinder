@@ -12,35 +12,38 @@ const {validateSignUpData} = require('../utils/validation');
 app.use(express.json())
 app.use(cookieParser())
 
-app.post('/signup',async (req,res)=>{
-    console.log("daf");
-    
-    try{
-    // 1. Validation 
-    validateSignUpData(req);
-    console.log("demo");
-    
-    const {firstName ,lastName,emailId,password}= req.body;
 
-    // 2. Encryption
-    const passwordHash = await bcrypt.hash(password,10);
 
-    // 3.Creating instance in db (Saving in db)
-    const user = new User({
-        firstName,
-        lastName,
-        emailId,
-        password:passwordHash
-    })
-        await user.save();
-        res.send("User Created Successfully In Db")
-    }catch(err){
-        res.status(400).send(err)
+app.get("/profile", async (req, res) => {
+    try {
+        console.log("data");
+        const cookieToken = req.cookies
+        const {token} = cookieToken;
+        console.log(token, "cookieTokens");
+
+        if (!token) {
+            return res.status(401).json({ error: "Invalid Token" }); // Proper JSON response
+        }
+
+        // Decoding cookie
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const { _id } = decoded;
+        
+        const user = await User.findById(_id);
+        if (!user) {
+            return res.status(404).json({ error: "No Such User Exists" }); // Proper JSON response
+        }
+
+        res.status(200).send(user); // Ensure JSON response
+    } catch (error) {
+        res.status(500).json({ error: error.message }); // Catch unexpected errors
     }
-})
+});
+
 
 // When trying to login
 app.post("/login",async(req,res)=>{
+
     try{
         const {emailId,password} = req.body
         const user = await User.findOne({emailId:emailId});
@@ -54,11 +57,11 @@ app.post("/login",async(req,res)=>{
             // 2. Adding it to cookies sending back to browser
             if(isPasswordValid){
                 
-                const token = jwt.sign({emailId:user.emailId,user:user._id},process.env.JWT_SECRET);
+                const token = jwt.sign({_id:user._id},process.env.JWT_SECRET);
                 res.cookie('token',token);
                 res.send("Login Successfully");
             }else{
-                throw new Error("Invalid Credentials")
+                throw new Error("Emailid not present in db");
             }
         }
     }catch(err){
@@ -66,23 +69,14 @@ app.post("/login",async(req,res)=>{
     }
 })
 
-
-// Verification for cookies 
-app.get("/profile",(req,res)=>{
-    const cookieToken = req.cookies.token
-    console.log(cookieToken,"cookieTokens");
-    res.send(cookieToken);
-
-})
-//  Payload To Fetch All The Users
-app.get("/allusers",async (req,res)=>{
-    try{
-        const allusers = await User.find({})
-        res.send(allusers)
-    }catch(err){
-        res.status(501).send("No Data Error")
-    }
-})
+// app.get("/allusers",async (req,res)=>{
+//     try{
+//         const allusers = await User.find({})
+//         res.send(allusers)
+//     }catch(err){
+//         res.status(501).send("No Data Error")
+//     }
+// })
 
 // Get Specific User
 app.get("/user",async(req,res)=>{
