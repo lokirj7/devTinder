@@ -14,4 +14,10 @@ else if(!validator.isEmail(emailId)){
 }
 
 }
-module.exports = { validateSignUpData}
+const allowedFieldsToEdit = (req)=>{
+const allowedFields = ["age","skills","firstName"];
+const isAllowed = Object.keys(req.body).every((field) => allowedFields.includes(field));
+ return isAllowed;
+
+}
+module.exports = { validateSignUpData,allowedFieldsToEdit}

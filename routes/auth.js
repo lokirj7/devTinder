@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 const User = require('../models/user')
 
 const express = require("express");
-const authRouter = express.Router
+const authRouter = express.Router()
 
 authRouter.post('/signup',async (req,res)=>{
     console.log("daf");
@@ -41,7 +41,7 @@ authRouter.post("/login",async(req,res)=>{
         const {emailId,password} = req.body
         const user = await User.findOne({emailId:emailId});
         if(!user){
-            throw new Error("Emailid not present in db");
+            throw new Error("Invalid Crenditials");
         }else{
             const isPasswordValid = await user.validatePassword(password);
 
@@ -49,18 +49,31 @@ authRouter.post("/login",async(req,res)=>{
 
             // 2. Adding it to cookies sending back to browser
             if(isPasswordValid){
+                //  if Password is valid creating jwt token storing in browser for 
+                //  reducing repeated login
                 
                 const token = await user.getJWT()
                 res.cookie('token',token,{expiresIn:'2h'});
                 res.send("Login Successfully");
             }else{
-                throw new Error("Emailid not present in db");
+                throw new Error("Invalid Crenditials");
             }
         }
     }catch(err){
         res.status(400).send("Error :" +err.message);
     }
 })
+
+// logout the user
+authRouter.post("/logout",(req,res)=>{
+        res.cookie("token",null,{
+            expires:new Date(Date.now())
+        })
+        .send("User Logged Out Successfully")
+        console.log("For Logged user checking");
+})
+
+// forgot password
 
 
 module.exports  = authRouter

@@ -6,14 +6,24 @@ const bcrypt = require('bcrypt');
 const UserSchema = new mongoose.Schema (
     {
 firstName:{
-    type:String
+    type:String,
+    required:true,
+    minLength:4,
+    maxLength:50
 },
 lastName:{
     type:String,
 },
 emailId:{
     type:String,
-    unique:true
+    lowercase:true,
+    required :true,
+    unique:true,
+    validate(value){
+        if(!validator.isEmail(value)){
+            throw new Error("Invalid Email Address");
+        }
+    }
 },
 password:{
     type:String
@@ -22,7 +32,14 @@ age:{
     type:Number
 },
 gender:{
-    type:String
+    type:String,
+    enum : {
+        values: ["male","female","other"],
+        message :`{VALUE} is not Valid Gender Type`
+    }
+},
+skills:{
+    type:[String]
 }
 },
 {
