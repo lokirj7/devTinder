@@ -6,7 +6,7 @@ const connectionRequestSchema = require("../models/connectionRequest")
 
 
 
-//  to check interested or ignored (Request send from us to other user)
+//  Connectoin Request Sending Route
 requestRouter.post("/request/send/:status/:toUserId",userAuth,async(req,res)=>{
     try{
         const fromUserId = req.user._id
@@ -56,5 +56,6 @@ requestRouter.post("/request/send/:status/:toUserId",userAuth,async(req,res)=>{
 
 
 })
+
 
 module.exports = requestRouter

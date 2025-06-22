@@ -7,6 +7,7 @@ const User = require('../models/user')
 const express = require("express");
 const authRouter = express.Router()
 
+// signup the user (new user Creation in db)
 authRouter.post('/signup',async (req,res)=>{
     console.log("daf");
     
@@ -15,12 +16,12 @@ authRouter.post('/signup',async (req,res)=>{
     validateSignUpData(req);
     console.log("demo");
     
-    const {firstName ,lastName,emailId,password}= req.body;
+    const {firstName ,lastName,emailId,password} = req.body;
 
-    // 2. Encryption
+    // 2. Encryption(password hashing happens here to store password not in plain text)
     const passwordHash = await bcrypt.hash(password,10);
 
-    // 3.Creating instance in db (Saving in db)
+    // 3.Creating instance in db (New User Creation In Db)
     const user = new User({
         firstName,
         lastName,
